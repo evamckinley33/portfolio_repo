@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 
-SERP_API_KEY = "YOUR_SERP_API_KEY"
+SERP_API_KEY = os.getenv("SERP_API_KEY")
 
 st.title("✈️ Optimal Flight Finder")
 
