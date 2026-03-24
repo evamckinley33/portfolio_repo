@@ -5,7 +5,7 @@ import requests
 
 SERP_API_KEY = os.getenv("SERP_API_KEY")
 
-st.title("✈️ Optimal Flight Finder")
+st.title("Flight Finder✈️")
 
 # -------------------------
 # USER INPUTS
