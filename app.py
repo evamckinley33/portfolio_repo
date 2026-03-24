@@ -73,7 +73,7 @@ with st.sidebar:
         st.error("⚠️ You are already spending more than you earn just on bills!")
 
 # --- MAIN: THE PURCHASE ---
-st.header("2. What are you thinking of buying?")
+st.header("What are you thinking of buying?")
 
 col1, col2 = st.columns(2)
 with col1:
