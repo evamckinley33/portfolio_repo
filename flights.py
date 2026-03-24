@@ -16,12 +16,12 @@ st.sidebar.header("Travel Inputs")
 departure_location = st.sidebar.text_input("Your Starting Location (City or ZIP)")
 
 origins = st.sidebar.text_input(
-    "Origin Airports (comma separated)",
+    "Origin Airport(s) Code (comma separated)",
     "MSN,MKE,ORD"
 ).upper().split(",")
 
 destinations = st.sidebar.text_input(
-    "Destination Airports (comma separated)",
+    "Destination Airport(s) Code (comma separated)",
     "LGA,JFK,HPN"
 ).upper().split(",")
 
