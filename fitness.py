@@ -1,14 +1,50 @@
 import streamlit as st
 import pandas as pd
-from snowflake.snowpark.context import get_active_session
 
 # -----------------------------------
-# Setup
+# Session Handling (LOCAL + SNOWFLAKE)
 # -----------------------------------
-session = get_active_session()
+import streamlit as st
 
+@st.cache_resource
+def get_snowflake_session():
+    """
+    Returns a single Snowflake session for both:
+    - Streamlit in Snowflake
+    - Local Streamlit
+    """
+
+    # --- Case 1: Running inside Snowflake ---
+    try:
+        from snowflake.snowpark.context import get_active_session
+        session = get_active_session()
+        return session
+    except Exception:
+        pass  # Not in Snowflake environment
+
+    # --- Case 2: Running locally ---
+    from snowflake.snowpark import Session
+
+    connection_parameters = {
+        "account": "<your_account>",
+        "user": "<your_username>",
+        "password": "<your_password>",
+        "role": "<your_role>",
+        "warehouse": "<your_warehouse>",
+        "database": "FITNESS_APP",
+        "schema": "ANALYTICS"
+    }
+
+    return Session.builder.configs(connection_parameters).create()
+
+
+# ✅ ONLY place session is created
+session = get_snowflake_session()
+
+# -----------------------------------
+# App Setup
+# -----------------------------------
 st.set_page_config(page_title="Fitness Insights", layout="wide")
-
 st.title("🏋️ Fitness Insights Dashboard")
 
 # -----------------------------------
@@ -50,18 +86,17 @@ st.header("Your Fitness Insights")
 
 if user_id:
 
-    query = """
+    query = f"""
         SELECT *
         FROM ANALYTICS.ENHANCED_METRICS
-        WHERE USER_ID = %s
+        WHERE USER_ID = '{user_id}'
         ORDER BY DATE
     """
 
-    data = session.sql(query, params=[user_id]).to_pandas()
+    data = session.sql(query).to_pandas()
 
     if not data.empty:
 
-        # Ensure DATE is datetime
         data["DATE"] = pd.to_datetime(data["DATE"])
 
         # -----------------------------------
@@ -97,7 +132,6 @@ if user_id:
             st.write("Sleep Debt (7-Day Rolling)")
             st.line_chart(data.set_index("DATE")[["SLEEP_DEBT_7D"]])
 
-        # Sleep Insight
         latest_sleep_debt = data["SLEEP_DEBT_7D"].iloc[-1]
 
         if latest_sleep_debt > 5:
@@ -122,7 +156,6 @@ if user_id:
         with col2:
             st.line_chart(data.set_index("DATE")[["READINESS_SCORE"]])
 
-        # Readiness Insight
         if latest_readiness > 75:
             st.success("High readiness: optimal for intense training.")
         elif latest_readiness > 50:
@@ -162,7 +195,7 @@ if user_id:
             st.success("No HRV anomalies detected")
 
         # -----------------------------------
-        # Combined Insights Summary
+        # Summary Insights
         # -----------------------------------
         st.subheader("Summary Insights")
 
@@ -173,31 +206,31 @@ if user_id:
         insights = []
 
         if avg_steps < 8000:
-            insights.append("Increase daily activity levels (steps below recommended range).")
+            insights.append("Increase daily activity levels.")
 
         if avg_sleep < 7:
             insights.append("Sleep duration is below optimal levels.")
 
         if avg_recovery < 50:
-            insights.append("Recovery scores are consistently low.")
+            insights.append("Recovery scores are low.")
 
         if latest_sleep_debt > 5:
-            insights.append("High cumulative sleep debt is affecting performance.")
+            insights.append("High cumulative sleep debt detected.")
 
         if latest_readiness < 50:
-            insights.append("Low readiness suggests need for recovery-focused days.")
+            insights.append("Low readiness — consider recovery.")
 
         if len(anomalies) > 0:
-            insights.append("HRV anomalies indicate possible stress or fatigue spikes.")
+            insights.append("HRV anomalies detected (possible stress/fatigue).")
 
         if insights:
             for i in insights:
                 st.write(f"- {i}")
         else:
-            st.success("All key health indicators are in a strong range. Keep it up!")
+            st.success("All key health indicators are strong.")
 
     else:
-        st.info("No data found for this user. Upload data to begin.")
+        st.info("No data found for this user.")
 
 else:
     st.info("Enter a User ID to view insights.")
