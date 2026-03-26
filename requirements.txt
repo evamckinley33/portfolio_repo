@@ -4,3 +4,4 @@ pandas
 numpy
 pulp
 google-search-results
+snowflake-snowpark-python
