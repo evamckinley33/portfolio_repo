@@ -6,7 +6,4 @@ pulp
 google-search-results
 snowflake-snowpark-python
 vaderSentiment
-pandas
-streamlit
-snowflake-snowpark-python
 openpyxl
